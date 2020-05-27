@@ -1,0 +1,222 @@
+\documentclass[14pt,xcolor={dvipsnames}]{beamer}
+\usepackage[T2A]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[english,russian]{babel}
+\usepackage{listings}
+\usepackage{amssymb,amsfonts,amsmath,mathtext}
+\usepackage{cite,enumerate,float,indentfirst}
+
+\usepackage{tikz}
+\usetikzlibrary{arrows,positioning}
+
+%\graphicspath{{images/}}
+
+\usetheme{Pittsburgh}
+\usecolortheme{whale}
+
+\lstdefinelanguage{Kotlin}{
+  keywords={package, as, as?, typealias, this, super, val, var, fun, for, null, true, false, is, in, throw, return, break, continue, object, if, try, else, while, do, when, class, interface, enum, object, companion, open, override, final, public, private, get, set, import, abstract, vararg, expect, actual, where, suspend, internal, dynamic, by, constructor},
+  keywordstyle=\color{NavyBlue}\bfseries,
+  ndkeywords={@Serializable, Payload, KOutput},
+  ndkeywordstyle=\color{BurntOrange}\bfseries,
+  emph={println, return@, forEach, map, mapNotNull, first, filter, firstOrNull, lazy, delegate},
+  emphstyle={\color{OrangeRed}},
+  identifierstyle=\color{black},
+  commentstyle=\color{gray}\ttfamily,
+  comment=[l]{//},
+  morecomment=[s]{/*}{*/},
+  stringstyle=\color{ForestGreen}\ttfamily,
+  morestring=[b]",
+  morestring=[s]{"""*}{*"""},
+  tabsize=4
+}
+
+%% Включаем Kotlin по умолчанию
+\lstset{language=Kotlin}
+\lstset{basicstyle=\ttfamily}
+
+\setbeamercolor{footline}{fg=blue}
+\setbeamertemplate{footline}{
+  \leavevmode%
+  \hbox{%
+  \begin{beamercolorbox}[wd=.333333\paperwidth,ht=2.25ex,dp=1ex,center]{}%
+    Л. М. Старцев, Университет ИТМО
+  \end{beamercolorbox}%
+  \begin{beamercolorbox}[wd=.333333\paperwidth,ht=2.25ex,dp=1ex,center]{}%
+    Санкт-Петербург, 2020
+  \end{beamercolorbox}%
+  \begin{beamercolorbox}[wd=.333333\paperwidth,ht=2.25ex,dp=1ex,right]{}%
+  Стр. \insertframenumber{} из \inserttotalframenumber \hspace*{2ex}
+  \end{beamercolorbox}}%
+  \vskip0pt%
+}
+
+\newcommand{\itemi}{\item[\checkmark]}
+
+\title{\small{Разработка и внедрение глубоко неизменяемых объектов в языке Kotlin}}
+\author{\small{%
+\emph{Выступающий:}~Л. М. Старцев\\%
+\emph{Руководитель:}~A. A. Шалыто}\\%
+\vspace{30pt}%
+Университет ИТМО%
+\vspace{20pt}%
+}
+\date{\small{Санкт-Петербург, 2020}}
+
+\begin{document}
+
+\maketitle
+
+\begin{frame}
+\frametitle{Проблема}
+\textbf{Цель:} Разработка нового механизма для языка Kotlin, который бы позволил обеспечивать более точный контроль над неизменяемостью объектов.%
+
+\begin{itemize}
+  \item Существующий механизм поддерживает только ссылочную неизменяемость через ключевое слово \texttt{val}
+  \item Не все ссылки в подграфе можно сделать \texttt{val}
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{\large Проблемы ссылочной неизменяемости}
+\begin{lstlisting}
+	val foo = Foo(42)
+	foo = foo2  // prohibited
+	foo.bar = 1 // allowed
+	
+	val list = arrayListOf(1,2,3)
+	list = list2 // prohibited
+	list.add(4)  // allowed
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}
+\frametitle{Анализ существующих решений}
+\textbf{Во время выполнения:} заморозка (JavaScript, Kotlin/Native).%
+
+\begin{itemize}
+  \item Позволяет сначала мутировать объект, а потом его заморозить.
+  \item Исключение и падение программы при попытке мутирования замороженного объекта.
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Анализ существующих решений}
+\textbf{В системе типов:} const/mut ссылки (Rust, C++, Swift).%
+
+\begin{itemize}
+  \item Высокий уровень гарантий и раннее обнаружение ошибок.
+  \item Чем более сложная система, тем менее удобно на ней программировать.
+  \item Скорее всего, введение такой системы будет невозможно без поломки обратной совместимости.
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Предлагаемое решение}
+\begin{enumerate}
+  \item \textbf{Проверка во временя выполнения}
+  \begin{itemize}
+    \item Точное, хоть и позднее, обнаружение ошибок.
+    \item Защищает от неопределенного поведения и гонок данных.
+  \end{itemize}
+  \item \textbf{Проверка во время компиляции}
+  \begin{itemize}
+    \item Поможет сократить количство рантайм ошибок.
+    \item Не обязано быть максимально точным.
+    \item Достаточно простая система.
+  \end{itemize}
+\end{enumerate}
+\end{frame}
+
+\begin{frame}
+\frametitle{Разделяемые объекты}
+\begin{enumerate}
+	\item Разделяемые по ссылке --- String, Int, etc
+	\item Разделяемые по значению --- могут быть в эксклюзивном или разделенном состоянии
+	\item Неразделяемые
+\end{enumerate}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Обобщение заморозки}
+Пользовательский код:
+\vspace{20pt}
+\begin{lstlisting}[basicstyle=\small\ttfamily]
+@Shared
+class Mutable {
+	var value: String = "abc"
+	var another: AnotherMutable = /*...*/
+}
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{После обработки плагином}
+Сгенерированный код:
+\begin{lstlisting}[basicstyle=\fontsize{10}{1}\selectfont\ttfamily]
+@Shared
+class Mutable {
+	/*synthetic*/ var isReadOnly: Boolean = false
+	
+	var value: String = "abc"
+		get(v) {
+			if (isReadonly) throwIME() 
+			field = v
+		}
+	
+	/*synthetic*/ fun share(): Mutable {
+		if (this.isReadOnly) return this
+		val copy = 
+		  this.copy(this.value, this.another.share())
+		copy.isReadOnly = true
+		return copy
+	}
+}
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}
+\frametitle{Преимущества share перед freeze}
+\begin{enumerate}
+	\item Замораживает копию, а не сам объект (паттерн defensive copy)
+	\item Для разделяемых по ссылке объектов не нужно проводить рекурсивную операцию
+\end{enumerate}	
+\end{frame}
+
+\begin{frame}
+\frametitle{Упрощенная модель владения объектами}
+Пусть у нас есть класс А, который является разделяемым по значению.
+Объект класса Б владеет объектом класса А, если одно или больше условий из списка выполнено:
+
+\begin{enumerate}
+	\item Класс Б разделяем по значению и в нем есть свойство типа А.
+	\item Класс Б имеет приватное свойство типа А, помеченное аннотацией \texttt{@Owned}.
+\end{enumerate}
+\end{frame}
+
+\begin{frame}
+\frametitle{Зачем нужна модель владения}
+Пара \texttt{T} - \texttt{@Owned T} является аналогом пары \texttt{List} - \texttt{MutableList}
+
+\begin{enumerate}
+	\item Предупреждение о необходимости вызова \texttt{share} при использовании \texttt{@Owned T} как \texttt{T} (например, при возврате из функции)
+	\item Предупреждение о возможном \texttt{InvalidImmutabilityException} при мутировании поля у типа \texttt{T} (отсутствие предупреждения при аналогичной операции над \texttt{@Owned T}
+\end{enumerate}
+\end{frame}
+
+\begin{frame}
+\frametitle{Обратная совместимость и внедрение}
+\begin{itemize}
+  \item Плагин компилятора можно подключать и отключать обратно
+  \item Неразделяемые (с неизвестной разделяемостью) объекты могут быть проигнорированы
+  \item Аннотации можно использовать в качестве легкоизменяемого прототипа новых ключевых слов
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\begin{center}
+Спасибо за внимание!
+\end{center}
+\end{frame}
+
+\end{document} 

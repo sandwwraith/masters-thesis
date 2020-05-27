@@ -1,0 +1,6 @@
+*.pdf
+.texpadtmp
+thesis-sources
+*.zip
+*.log
+*.mp4
