@@ -159,21 +159,37 @@ class Mutable {
 	/*synthetic*/ var isReadOnly: Boolean = false
 	
 	var value: String = "abc"
-		get(v) {
+		set(v) {
 			if (isReadonly) throwIME() 
 			field = v
 		}
-	
-	/*synthetic*/ fun share(): Mutable {
-		if (this.isReadOnly) return this
-		val copy = 
-		  this.copy(this.value, this.another.share())
-		copy.isReadOnly = true
-		return copy
-	}
 }
 \end{lstlisting}
 \end{frame}
+
+\begin{frame}[fragile]
+\frametitle{После обработки плагином}
+Сгенерированный код:
+\begin{lstlisting}[basicstyle=\fontsize{10}{1}\selectfont\ttfamily]
+@Shared
+class Mutable {
+  fun share() = shareImpl(IdentityHashMap())
+    
+    
+  fun shareImpl(dfsState: MutableMap<Any, Any>)
+      : Mutable {
+    if (this.isReadOnly) return this
+	if (this in dfsState) return dfsState[this]
+	val copy = 
+	  this.copy(this.value, this.another.share())
+	copy.isReadOnly = true
+	dfsState[this] = copy
+	return copy
+  }
+}
+\end{lstlisting}
+\end{frame}
+
 
 \begin{frame}
 \frametitle{Преимущества share перед freeze}
