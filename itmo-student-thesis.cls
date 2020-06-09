@@ -222,7 +222,9 @@
     sortcites=true,
     bibstyle=gost-numeric,
     citestyle=numeric-comp,
-    autolang=other
+    autolang=other,
+    maxnames=50,
+    language=russian
 ]{biblatex}
 
 %% Патчи к стилевику библиографии.

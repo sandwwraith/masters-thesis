@@ -181,7 +181,7 @@ class Mutable {
     if (this.isReadOnly) return this
 	if (this in dfsState) return dfsState[this]
 	val copy = 
-	  this.copy(this.value, this.another.share())
+	  this.copy(this.value, this.another.shareImpl(dfsState))
 	copy.isReadOnly = true
 	dfsState[this] = copy
 	return copy
