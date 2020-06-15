@@ -78,9 +78,16 @@
   langid = {english},
 }
 
+@online{rust-lang,
+	url = {https://www.rust-lang.org/},
+	title = {The Rust programming language},
+	langid = {english},
+	urldate = {2019-10-10}
+}
+
 @online{rust-mut,
 	url = {https://doc.rust-lang.org/1.0.0/book/mutability.html},
-	title = {The Rust programming language},
+	title = {The Rust programming language --- Mutability},
 	langid = {english},
 	urldate = {2019-10-10}
 }
@@ -89,7 +96,7 @@
 	url = {https://kotlinlang.org/},
 	title = {Kotlin programming language},
 	langid = {english},
-	urldate = {2019-10-10}
+	urldate = {2018-10-10}
 }
 
 @online{cpp-const,
@@ -97,6 +104,27 @@
 	title = {C++ language reference},
 	langid = {english},
 	urldate = {2019-10-10}
+}
+
+@book{iso-cpp,
+  added-at = {2012-10-08T01:13:47.000+0200},
+  address = {Geneva, Switzerland},
+  author = {{ISO}},
+  bibdate = {Mon Dec 19 11:12:12 2011},
+  bibsource = {http://www.math.utah.edu/pub/tex/bib/isostd.bib},
+  biburl = {https://www.bibsonomy.org/bibtex/24b660c16d9a5ab0ad595b1555402c797/gron},
+  day = 28,
+  interhash = {ff5df6d7fa67f89d7d5ea964dab3e3c9},
+  intrahash = {4b660c16d9a5ab0ad595b1555402c797},
+  keywords = {C++ Specification Standard},
+  month = feb,
+  pages = {1338 (est.)},
+  publisher = {International Organization for Standardization},
+  remark = {Revises ISO/IEC 14882:2003.},
+  timestamp = {2012-10-08T01:13:47.000+0200},
+  title = {{ISO/IEC 14882:2011 Information technology --- Programming languages --- C++}},
+  url = {http://www.iso.org/iso/iso_catalogue/catalogue_tc/catalogue_detail.htm?csnumber=50372},
+  year = 2012
 }
 
 @online{js-deep-freeze,
@@ -159,7 +187,8 @@
 %%% Исходные материалы и пособия 
 %% todo дописать исходные материалы
 \plannedsources{\begin{enumerate}
-    \item Исходный код компилятора Kotlin; в частности, существующие плагины к компилятору.
+    \item Kotlin programming language [Электронный ресурс]. — URL: https:// kotlinlang.org/ (дата обращения: 10.10.2018).
+    \item The Java Virtual Machine Specification, Java SE 8 Edition / T. Lindholm, F. Yellin, G. Bracha, A. Buckley. — Addison-Wesley Professional, 2014. — 600 с.
 \end{enumerate}}
 
 %%% Цель исследования
@@ -272,7 +301,7 @@ class WithPrivateList {
 
 \subsection{Модификатор \texttt{const} в C++}
 
-В языке C++ есть \texttt{const} модификатор, который на первый взгляд может показаться аналогом \texttt{final} из Java, но это не так: все ссылки в С++ изначально неизменяемые, а добавляя к ним \texttt{const} модификатор, становится невозможным изменить и содержимое объекта, доступного по такой ссылке.
+В языке C++ \cite{iso-cpp} есть \texttt{const} модификатор, который на первый взгляд может показаться аналогом \texttt{final} из Java, но это не так: все ссылки в С++ изначально неизменяемые, а добавляя к ним \texttt{const} модификатор, становится невозможным изменить и содержимое объекта, доступного по такой ссылке.
 Применяя данный модификатор к указателям, можно получить как и неизменяемый указатель на изменяемый объект, так и изменяемый указатель на неизменяемый объект, или сделать и указатель, и объект неизменяемыми.
 Поэтому данный подход предоставляет более точный, по сравнению с Java, контроль над изменяемостью.
 Более того, методы классов в C++ тоже можно помечать как \texttt{const} \cite{cpp-const}, таким образом указывая, какие методы можно вызывать, имея const ссылку, а какие --- имея только обычную.
@@ -284,7 +313,7 @@ class WithPrivateList {
 
 \subsection{\texttt{mut} ссылки в Rust}
 
-Язык программирования Rust также предлагает два типа ссылок: изменяемые и неизменяемые, причём, как и в C++, неизменяемость ссылки так же означает, что на этому объекте нельзя вызывать мутирующие методы и нельзя изменять его поля. При это все ссылки являются неизменяемыми по умолчанию, а чтобы обозначить ссылку как изменяемую, необходимо применить ключевое слово \texttt{mut} \cite{rust-mut}. 
+Язык программирования Rust \cite{rust-lang} также предлагает два типа ссылок: изменяемые и неизменяемые, причём, как и в C++, неизменяемость ссылки так же означает, что на этому объекте нельзя вызывать мутирующие методы и нельзя изменять его поля. При это все ссылки являются неизменяемыми по умолчанию, а чтобы обозначить ссылку как изменяемую, необходимо применить ключевое слово \texttt{mut} \cite{rust-mut}. 
 Специальный механизм компилятора, называющийся \texttt{borrow checker}, умеет проверять, что в конкретной точке программы на конкретный объект указывает либо одна изменяемая ссылка, либо несколько неизменяемых.
 Таким образом решается проблема, существующая в C++ и Kotlin: если клиент имеет на руках неизменяемую ссылку в Rust, он может быть уверен, что объект, доступный по ней, не будет изменён неожиданным образом, так как чтобы получить \texttt{mut} ссылку, необходимо, чтобы других ссылок на этот объект не было.
 Данный паттерн называется \textit{Shared xor mutable} --- "Разделённый либо изменяемый".
@@ -454,7 +483,7 @@ class MutableTransformed {
 	/*synthetic*/ var isReadOnly: Boolean = false
 	var value: String = "abc"
 		set(v) {
-			if (isReadonly) throwIME() 
+			if (isReadOnly) throwIME() 
 			field = v
 		}
 }
@@ -638,7 +667,7 @@ class Mutable {
 Для этого подходит алгоритм поиска в глубину: с помощью данного алгоритма можно отмечать уже посещенные объекты и те, в процессе копирования которых мы сейчас находимся.
 Также, необходимо запоминать, какому из оригинальных объектов какой скопированный объект соответствует, чтобы решить проблему \ref{rombic}). 
 Можно заметить, что в качестве отметки о "посещении" объекта может служить как раз его новая копия.
-Таким образом, для запоминания состояния обхода в глубину был выбран \texttt{IdentityHashMap<Any, Any?>}, где в качестве ключей выступают элементы графа -- оригинальные объекты, а в качестве значений их новые копии или \texttt{null}, если данный объект ещё не был скопирован.
+Таким образом, для запоминания состояния обхода в глубину был выбран \texttt{IdentityHashMap<Any, Any>}, где в качестве ключей выступают элементы графа -- оригинальные объекты, а в качестве значений их новые копии. Если данный объект ещё не был скопирован, значение будет отсутствовать.
 Очевидно, что асимптотика затрат памяти при этом не ухудшилась.
 
 Реализация метода \texttt{share} при этом разделится на две, как показано на листинге \ref{share_impl}.
@@ -669,6 +698,8 @@ class Mutable {
 Если всё-таки требуется поддержать циклические ссылки, можно применить другой подход.
 Для этого обязательно потребуется сгенерировать классе копирующий конструктор, который будет принимать параметры \texttt{dfsState} --- состояние обхода в глубину и \texttt{oldThis} --- объект, который требуется скопировать и который служит ключом в словаре состояния.
 Тогда запись \texttt{dfs[oldThis] = this} можно будет произвести до непосредственного процесса копирования. Соответственно, в процессе копирования в словаре состояния уже будет доступно новое значение.
+Пример такой трансформации для двух классов, которые могут образовывать цикл, показан в приложении \ref{share_gen_example}.
+
 
 Кроме того, предложенный подход с использованием конструктора копирования решает ещё одну проблему, связанную с исполнением в многопоточной среде в JVM.
 В реализации \texttt{share}, приведённой на листинге \ref{share_impl}, запись свойства \texttt{copy.isReadOnly = true} не защищена никаким барьером памяти.
@@ -724,6 +755,9 @@ class Mutable {
 
 Все разделяемые реализации коллекций будут удовлетворять стандартным контрактам своих интерфейсов, за исключением изменяющих методов (таких как \texttt{add}, \texttt{remove}, и т. д.): такие методы будут бросать исключение.
 Данный подход аналогичен поведению коллекции после её копирования и вызова \texttt{java.util.Collections.unmodifiableCollection}. Данный метод можно даже использовать в качестве детали реализации на JVM, однако для JS и Native всё равно придётся писать собственный аналог.
+
+Для массивов (\texttt{IntArray}, \texttt{Array<String>} и им подобных) аналогичный подход применить не получится.
+К ним также не получится применить обычную трансформацию для \texttt{@Shared} классов, поэтому, к сожалению, придётся считать типы массивов неразделяемыми.
 
 
 \section{Механизм расширения компилятора}\label{codegen}
@@ -786,7 +820,7 @@ class Mutable {
 
 В данной главе были рассмотрены детали реализации рассматриваемого решения и изложены решения таких технических проблем, как: копирование подграфа объектов с циклами и ромбами, копирование экземпляров классов, возможность наследования разделяемых классов друг от друга и их возможности по реализации интерфейсов.
 Были рассмотрены способы реализовать предложенные изменения в структуре компилятора Kotlin и было показано, что оптимальным способом внести такие изменения будет их реализация в виде плагина к компилятору, работающая с внутренним промежуточным представлением (IR).
-Также были проанализированы возможные накладные расходы при исполнении кода, трансформированного предложенным в работе способом, и доказано, что при оптимальном сценарии использования они будут незначительными.  
+Также были проанализированы возможные накладные расходы при исполнении кода, трансформированного предложенным в работе способом, и доказано, что при оптимальном сценарии использования они будут незначительными.
 
 
 %% Макрос для заключения. Совместим со старым стилевиком.
@@ -806,8 +840,87 @@ class Mutable {
 
 %% После этой команды chapter будет генерировать приложения, нумерованные русскими буквами.
 %% \startappendices из старого стилевика будет делать то же самое
-%\appendix
+\appendix
 
-%\chapter{Пример приложения}\label{sec:app:1}
+\chapter{Пример кода, сгенерированного плагином}\label{share_gen_example}
+
+Как было сказано в разделе \ref{codegen}, плагины к компилятору преобразуют
+Kotlin код уже в виде IR. IR нельзя
+декомпилировать обратно в Kotlin, он может быть только скомпилирован
+дальше в целевую платформу.
+Поэтому в примере ниже показан не результат работы плагина, а код, ему аналогичный.
+Единственное отличие в том, что поле \texttt{isReadOnly} декларировано как изменяемое.
+Связано это с тем, что в обычном Kotlin коде требуется из вторичных конструкторов всегда вызывать первичный, а \texttt{val} свойства требуется присваивать в первичном конструкторе.
+Однако, если вторичный конструктор сгенерирован плагином, это ограничение можно обойти.
+
+Также, на вторичный копирующий конструктор, метод \texttt{shareImpl} и свойство \texttt{isReadOnly} будет применена аннотация \texttt{@Deprecated(level = DeprecationLevel.HIDDEN)}, которая скроет эти декларации для пользователя.
+
+\begin{lstlisting}[caption={Код, аналогичный трансформированному}]
+@Shared
+class Mutable() {
+    private var isReadOnly: Boolean = false
+
+    var value: String = "abc"
+        set(v) {
+            if (isReadOnly) throwIME()
+            field = v
+        }
+
+    var another: AnotherMutable = AnotherMutable()
+        set(v) {
+            if (isReadOnly) throwIME()
+            field = v
+        }
+
+
+    constructor(dfsState: MutableMap<Any, Any>, oldThis: Mutable): this() {
+        dfsState[oldThis] = this
+
+        value = oldThis.value
+        another = oldThis.another.shareImpl(dfsState)
+
+        isReadOnly = true
+    }
+
+    fun shareImpl(dfsState: MutableMap<Any, Any>): Mutable {
+        if (this.isReadOnly) return this
+        if (this in dfsState) return dfsState.getValue(this) as Mutable
+        return Mutable(dfsState, this)
+    }
+
+    fun share(): Mutable {
+        return shareImpl(IdentityHashMap())
+    }
+}
+
+@Shared
+class AnotherMutable() {
+    private var isReadOnly: Boolean = false
+
+    var possibleCycle: Mutable? = null
+        set(v) {
+            if (isReadOnly) throwIME()
+            field = v
+        }
+
+    constructor(dfsState: MutableMap<Any, Any>, oldThis: AnotherMutable): this() {
+        dfsState[oldThis] = this
+
+        possibleCycle = oldThis.possibleCycle?.shareImpl(dfsState)
+
+        isReadOnly = true
+    }
+
+    fun shareImpl(dfsState: MutableMap<Any, Any>): AnotherMutable {
+        if (this.isReadOnly) return this
+        if (this in dfsState) return dfsState.getValue(this) as AnotherMutable
+        return AnotherMutable(dfsState, this)
+    }
+
+    fun share(): AnotherMutable {
+        return shareImpl(IdentityHashMap())
+    }
+}
+\end{lstlisting}
 
 \end{document}
