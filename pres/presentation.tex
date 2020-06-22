@@ -56,7 +56,8 @@
 \title{\small{Разработка и внедрение глубоко неизменяемых объектов в языке Kotlin}}
 \author{\small{%
 \emph{Выступающий:}~Л. М. Старцев\\%
-\emph{Руководитель:}~A. A. Шалыто}\\%
+\emph{Руководитель:}~A. A. Шалыто\\%
+\emph{Консультант:}~Р. А. Елизаров}\\%
 \vspace{30pt}%
 Университет ИТМО%
 \vspace{20pt}%
@@ -121,7 +122,7 @@
   \end{itemize}
   \item \textbf{Проверка во время компиляции}
   \begin{itemize}
-    \item Поможет сократить количство рантайм ошибок.
+    \item Поможет сократить количество рантайм ошибок.
     \item Не обязано быть максимально точным.
     \item Достаточно простая система.
   \end{itemize}
@@ -156,7 +157,7 @@ class Mutable {
 \begin{lstlisting}[basicstyle=\fontsize{10}{1}\selectfont\ttfamily]
 @Shared
 class Mutable {
-	/*synthetic*/ var isReadOnly: Boolean = false
+	private var isReadOnly: Boolean = false
 	
 	var value: String = "abc"
 		set(v) {
@@ -173,21 +174,16 @@ class Mutable {
 \begin{lstlisting}[basicstyle=\fontsize{10}{1}\selectfont\ttfamily]
 @Shared
 class Mutable {
-  fun share() = shareImpl(IdentityHashMap())
-    
-    
-  fun shareImpl(dfsState: MutableMap<Any, Any>)
-      : Mutable {
-    if (this.isReadOnly) return this
-	if (this in dfsState) return dfsState[this]
-	val copy = 
-	  this.copy(this.value, this.another.shareImpl(dfsState))
-	copy.isReadOnly = true
-	dfsState[this] = copy
-	return copy
-  }
+   fun share(): Mutable {
+     if (this.isReadOnly) return this
+	  val copy = 
+	    this.copy(this.value, this.another.share())
+	  copy.isReadOnly = true
+	  return copy
+	}
 }
 \end{lstlisting}
+\footnotesize{Вариант, работающий с циклическими ссылакми, представлен в ПЗ.}
 \end{frame}
 
 
@@ -208,6 +204,8 @@ class Mutable {
 	\item Класс Б разделяем по значению и в нем есть свойство типа А.
 	\item Класс Б имеет приватное свойство типа А, помеченное аннотацией \texttt{@Owned}.
 \end{enumerate}
+
+Функции тоже могут владеть своими аргументами, если параметры были помечены как  \texttt{@Owned}.
 \end{frame}
 
 \begin{frame}
@@ -216,15 +214,15 @@ class Mutable {
 
 \begin{enumerate}
 	\item Предупреждение о необходимости вызова \texttt{share} при использовании \texttt{@Owned T} как \texttt{T} (например, при возврате из функции)
-	\item Предупреждение о возможном \texttt{InvalidImmutabilityException} при мутировании поля у типа \texttt{T} (отсутствие предупреждения при аналогичной операции над \texttt{@Owned T}
+	\item Предупреждение о возможном \texttt{InvalidImmutabilityException} при мутировании поля у типа \texttt{T} (отсутствие предупреждения при аналогичной операции над \texttt{@Owned T})
 \end{enumerate}
 \end{frame}
 
 \begin{frame}
 \frametitle{Обратная совместимость и внедрение}
 \begin{itemize}
-  \item Плагин компилятора можно подключать и отключать обратно
   \item Неразделяемые (с неизвестной разделяемостью) объекты могут быть проигнорированы
+  \item Плагин компилятора можно подключать и отключать обратно
   \item Аннотации можно использовать в качестве легкоизменяемого прототипа новых ключевых слов
 \end{itemize}
 \end{frame}
